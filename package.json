@@ -1,0 +1,74 @@
+{
+  "name": "dingdocs-crawler",
+  "version": "0.0.0",
+  "description": "",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./lib/types/index.d.ts",
+      "default": "./lib/esm/index.js"
+    }
+  },
+  "types": "./lib/types/index.d.js",
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "dev": "node --loader ts-node/esm ./src/index.ts",
+    "clean": "rimraf ./lib",
+    "prebuild": "npm run clean",
+    "build": "tsc -p ./tsconfig.esm.json",
+    "test": "ava",
+    "prepare": "husky install",
+    "release": "np"
+  },
+  "engines": {
+    "node": ">= 18"
+  },
+  "repository": {
+    "url": "imyelo/dingdocs-crawler",
+    "type": "git"
+  },
+  "author": "yelo <zhihuzeye@gmail.com>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/imyelo/dingdocs-crawler/issues"
+  },
+  "homepage": "https://github.com/imyelo/dingdocs-crawler#readme",
+  "devDependencies": {
+    "@yelo/eslint-config": "^0.2.0",
+    "@yelo/prettier-config": "^0.1.0",
+    "@yelo/tsconfig": "^0.3.0",
+    "ava": "^5.2.0",
+    "eslint": "^8.38.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^13.2.1",
+    "np": "^7.7.0",
+    "prettier": "^2.8.7",
+    "prettier-eslint-cli": "^6.0.1",
+    "rimraf": "^4.4.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.4"
+  },
+  "ava": {
+    "extensions": {
+      "ts": "module"
+    },
+    "nodeArguments": [
+      "--loader=ts-node/esm"
+    ],
+    "files": [
+      "test/**/*",
+      "!test/helpers/**/*"
+    ]
+  },
+  "prettier": "@yelo/prettier-config",
+  "lint-staged": {
+    "*.{md,js,ts,json}": [
+      "prettier-eslint --write"
+    ]
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
+  }
+}

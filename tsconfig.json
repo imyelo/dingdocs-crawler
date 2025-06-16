@@ -1,0 +1,7 @@
+{
+  "extends": "@yelo/tsconfig",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": ["eslintrc", "tsconfig.json", "tsconfig.esm.json", "src", "test"]
+}

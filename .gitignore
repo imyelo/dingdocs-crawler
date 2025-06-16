@@ -1,0 +1,9 @@
+# dev
+.DS_Store
+node_modules
+npm-debug.log
+yarn-error.log
+lerna-debug.log
+
+# dist
+/lib
