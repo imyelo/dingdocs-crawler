@@ -20,7 +20,8 @@
     "build": "tsc -p ./tsconfig.esm.json",
     "test": "ava",
     "prepare": "husky install",
-    "release": "np"
+    "release": "np",
+    "start": "node --loader ts-node/esm ./src/index.ts"
   },
   "engines": {
     "node": ">= 18"
@@ -35,6 +36,22 @@
     "url": "https://github.com/imyelo/dingdocs-crawler/issues"
   },
   "homepage": "https://github.com/imyelo/dingdocs-crawler#readme",
+  "dependencies": {
+    "@logtail/pino": "^0.4.0",
+    "crawlee": "^3.3.0",
+    "crawlee-pino": "^0.1.0",
+    "dayjs": "^1.11.7",
+    "delay": "^5.0.0",
+    "dotenv-flow": "^3.2.0",
+    "got": "^12.6.0",
+    "p-timeout": "^6.1.1",
+    "path-to-regexp": "^6.2.1",
+    "pino": "^8.11.0",
+    "playwright": "^1.31.2",
+    "puppeteer": "^19.7.5",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2"
+  },
   "devDependencies": {
     "@yelo/eslint-config": "^0.2.0",
     "@yelo/prettier-config": "^0.1.0",
