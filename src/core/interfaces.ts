@@ -2,3 +2,13 @@ export enum SOURCE {
   FOLDER = 'FOLDER',
   FILE = 'FILE',
 }
+
+export enum LINK_TYPE {
+  FOLDER = 'FOLDER',
+  PREVIEW = 'PREVIEW',
+  DOCUMENT = 'DOCUMENT',
+  SPREADSHEET = 'SPREADSHEET',
+  NOTABLE = 'NOTABLE',
+  MIND = 'MIND',
+  UNKNOWN = 'UNKNOWN',
+}

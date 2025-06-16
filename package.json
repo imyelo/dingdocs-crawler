@@ -38,6 +38,7 @@
   "homepage": "https://github.com/imyelo/dingdocs-crawler#readme",
   "dependencies": {
     "@logtail/pino": "^0.4.0",
+    "clipboardy": "^4.0.0",
     "crawlee": "^3.3.0",
     "crawlee-pino": "^0.1.0",
     "dayjs": "^1.11.7",
