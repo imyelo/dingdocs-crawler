@@ -12,3 +12,4 @@ export const LOG_PATH = process.env.APP_LOG_PATH
 export const HEALTHY_UUID = process.env.APP_HEALTHY_UUID
 export const LOGTAIL_SOURCE_TOKEN = process.env.APP_LOGTAIL_SOURCE_TOKEN
 export const ENTRY_URL = process.env.APP_ENTRY_URL
+export const DOWNLOAD_PATH = process.env.APP_DOWNLOAD_PATH

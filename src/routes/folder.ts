@@ -2,12 +2,15 @@ import clipboardy from 'clipboardy'
 import delay from 'delay'
 import { abortUselessRequests } from '../common/abort-useless-requests.js'
 import { loadCookies, saveCookies } from '../common/cookies-store.js'
+import { createDownloader } from '../common/download.js'
 import type { Handler } from '../core/crawler.js'
 import { log } from '../core/log.js'
 
 const handler: Handler = async ({ page }) => {
   await loadCookies(page)
   await abortUselessRequests(page)
+
+  const { waitForDownload } = await createDownloader(page)
 
   log.info('Waiting for user login...')
   try {
@@ -64,10 +67,11 @@ const handler: Handler = async ({ page }) => {
       await page.waitForSelector(dropdownSelector, { timeout: 10000 })
       await delay(1000)
 
-      console.log('click copy link')
-      const copyLinkSelector = `${dropdownSelector} [title="Copy link"], ${dropdownSelector} [title="复制链接"]`
-      await page.waitForSelector(copyLinkSelector, { timeout: 10000 })
-      await page.click(copyLinkSelector)
+      console.log('click download')
+      const downloadSelector = `${dropdownSelector} [title="Download"], ${dropdownSelector} [title="下载"]`
+      await page.waitForSelector(downloadSelector, { timeout: 10000 })
+      await page.click(downloadSelector)
+      await waitForDownload()
       await delay(1000)
 
       console.log('read text')

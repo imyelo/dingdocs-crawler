@@ -12,3 +12,4 @@ lerna-debug.log
 *.local
 /storage
 *.log
+/downloads
