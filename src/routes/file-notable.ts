@@ -3,10 +3,9 @@ import { abortUselessRequests } from '../common/abort-useless-requests.js'
 import { loadCookies } from '../common/cookies-store.js'
 import { createDownloader } from '../common/download.js'
 import { waitForLogin } from '../common/login.js'
+import { timeout } from '../common/timeout.js'
 import type { Handler } from '../core/crawler.js'
 import { log } from '../core/log.js'
-
-const EXTENSION = 'zip'
 
 const handler: Handler = async ({ page, request }) => {
   await loadCookies(page)
@@ -61,10 +60,10 @@ const handler: Handler = async ({ page, request }) => {
     const downloadModalButtonsSelector = '.wdn-modal-content button:has(._export20)'
     await page.waitForSelector(downloadModalButtonsSelector, { timeout: 10000 })
     await page.click(downloadModalButtonsSelector)
-    await waitForFileReady(`${filename}.${EXTENSION}`)
+    await Promise.any([waitForFileReady(`${filename}.zip`), waitForFileReady(`${filename}.xlsx`), timeout(10000)])
     await delay(1000)
 
-    console.log(`Downloaded to "${workdir.join('/')}/${filename}.${EXTENSION}"`)
+    console.log(`Downloaded to "${workdir.join('/')}/${filename}.(xlsx|zip)"`)
   } catch (error) {
     log.error(`Error: ${error.message}`)
     throw error
