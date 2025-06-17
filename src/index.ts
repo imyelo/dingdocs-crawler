@@ -1,14 +1,14 @@
 import pTimeout from 'p-timeout'
 import { CRAWLER_TIMEOUT_SECONDS, ENTRY_URL, HEALTHY_UUID } from './core/env.js'
 import { ping } from './core/healthy.js'
-import { SOURCE } from './core/interfaces.js'
+import { LINK_TYPE } from './core/interfaces.js'
 import { log } from './core/log.js'
 import { crawler } from './routes/index.js'
 
 log.info({ event: 'crawler start' })
 
 try {
-  await pTimeout(crawler.run([{ url: ENTRY_URL, label: SOURCE.FOLDER }]), {
+  await pTimeout(crawler.run([{ url: ENTRY_URL, label: LINK_TYPE.FOLDER }]), {
     milliseconds: CRAWLER_TIMEOUT_SECONDS * 1000,
     fallback: () => {
       log.info({ event: 'crawler timeout' })

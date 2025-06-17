@@ -21,7 +21,8 @@
     "test": "ava",
     "prepare": "husky install",
     "release": "np",
-    "start": "node --loader ts-node/esm ./src/index.ts"
+    "start": "node --loader ts-node/esm ./src/index.ts",
+    "log": "tail -f ./output.log | pino-pretty"
   },
   "engines": {
     "node": ">= 18"
@@ -62,6 +63,7 @@
     "husky": "^8.0.3",
     "lint-staged": "^13.2.1",
     "np": "^7.7.0",
+    "pino-pretty": "^13.0.0",
     "prettier": "^2.8.7",
     "prettier-eslint-cli": "^6.0.1",
     "rimraf": "^4.4.1",

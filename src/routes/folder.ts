@@ -1,40 +1,19 @@
 import clipboardy from 'clipboardy'
+import type { Source } from 'crawlee'
 import delay from 'delay'
 import { abortUselessRequests } from '../common/abort-useless-requests.js'
 import { catLink } from '../common/cat-link.js'
-import { loadCookies, saveCookies } from '../common/cookies-store.js'
-import { createDownloader } from '../common/download.js'
+import { loadCookies } from '../common/cookies-store.js'
+import { waitForLogin } from '../common/login.js'
 import type { Handler } from '../core/crawler.js'
+import { LINK_TYPE } from '../core/interfaces.js'
 import { log } from '../core/log.js'
 
 const handler: Handler = async ({ page, crawler }) => {
   await loadCookies(page)
   await abortUselessRequests(page)
-
-  log.info('Waiting for user login...')
-  try {
-    const title = await page.title()
-    const isLoginPage = title.includes('钉钉统一身份认证') || title.includes('DingTalk unified identity')
-
-    if (isLoginPage) {
-      log.info('Please login in the browser window...')
-      await page.waitForFunction(
-        () => {
-          return (
-            window.location.href.includes('/i/desktop/folders/') ||
-            document.querySelector('.left-wrapper-container') !== null
-          )
-        },
-        { timeout: 300000 }
-      )
-    }
-    log.info('User logged in successfully')
-
-    await saveCookies(page)
-  } catch (error) {
-    log.error('Login timeout or failed:', error)
-    throw error
-  }
+  await waitForLogin(page)
+  await delay(1000)
 
   try {
     // TODO: handle empty folder
@@ -45,7 +24,6 @@ const handler: Handler = async ({ page, crawler }) => {
       elements.map(el => el.textContent?.trim() || '')
     )
     log.info(`Workdir: ${workdir.join(' > ')}`)
-    const { waitForDownload } = await createDownloader(page, workdir)
 
     const fileNames = await page.$$eval('[data-my-files-id] [data-testid="editable-text"]', elements =>
       elements.map(el => el.textContent?.trim() || '')
@@ -54,7 +32,7 @@ const handler: Handler = async ({ page, crawler }) => {
     log.info(`Found ${fileNames.length} files`)
     log.info(`Found files: ${fileNames.join(', ')}`)
 
-    const links = []
+    const nextRequests: Source[] = []
 
     for (const fileName of fileNames) {
       console.log('hover', fileName)
@@ -78,34 +56,28 @@ const handler: Handler = async ({ page, crawler }) => {
       await page.click(copyLinkSelector)
       await delay(1000)
 
-      // console.log('click download')
-      // const downloadSelector = `${dropdownSelector} [title="Download"], ${dropdownSelector} [title="下载"]`
-      // await page.waitForSelector(downloadSelector, { timeout: 10000 })
-      // await page.click(downloadSelector)
-      // await waitForDownload()
-      // await delay(1000)
-
       console.log('read text')
-      links.push(await clipboardy.read())
+      const link = await clipboardy.read()
+
+      const label = catLink(link)
+      if (label === LINK_TYPE.UNKNOWN) {
+        log.error(`Unknown link type: ${link}`)
+        continue
+      }
+      nextRequests.push({
+        url: link,
+        label,
+        userData: {
+          label,
+          workdir,
+          filename: fileName,
+        },
+      })
       await delay(1000)
     }
 
-    console.log(links)
-
-    const queue = await crawler.addRequests(
-      links.map(link => ({
-        url: link,
-        label: catLink(link),
-        userData: {
-          type: catLink(link),
-          workdir,
-        },
-      }))
-    )
-
+    const queue = await crawler.addRequests(nextRequests)
     await queue.waitForAllRequestsToBeAdded
-
-    // await delay(1000000)
   } catch (error) {
     log.error(`Error: ${error.message}`)
     throw error

@@ -1,8 +1,3 @@
-export enum SOURCE {
-  FOLDER = 'FOLDER',
-  FILE = 'FILE',
-}
-
 export enum LINK_TYPE {
   FOLDER = 'FOLDER',
   PREVIEW = 'PREVIEW',
