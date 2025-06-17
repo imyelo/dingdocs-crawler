@@ -1,16 +1,15 @@
 import clipboardy from 'clipboardy'
 import delay from 'delay'
 import { abortUselessRequests } from '../common/abort-useless-requests.js'
+import { catLink } from '../common/cat-link.js'
 import { loadCookies, saveCookies } from '../common/cookies-store.js'
 import { createDownloader } from '../common/download.js'
 import type { Handler } from '../core/crawler.js'
 import { log } from '../core/log.js'
 
-const handler: Handler = async ({ page }) => {
+const handler: Handler = async ({ page, crawler }) => {
   await loadCookies(page)
   await abortUselessRequests(page)
-
-  const { waitForDownload } = await createDownloader(page)
 
   log.info('Waiting for user login...')
   try {
@@ -42,6 +41,12 @@ const handler: Handler = async ({ page }) => {
     await page.waitForSelector('[data-my-files-id]', { timeout: 10000 })
     await delay(1000)
 
+    const workdir = await page.$$eval('.ant-breadcrumb .breadcrumb-item', elements =>
+      elements.map(el => el.textContent?.trim() || '')
+    )
+    log.info(`Workdir: ${workdir.join(' > ')}`)
+    const { waitForDownload } = await createDownloader(page, workdir)
+
     const fileNames = await page.$$eval('[data-my-files-id] [data-testid="editable-text"]', elements =>
       elements.map(el => el.textContent?.trim() || '')
     )
@@ -67,12 +72,18 @@ const handler: Handler = async ({ page }) => {
       await page.waitForSelector(dropdownSelector, { timeout: 10000 })
       await delay(1000)
 
-      console.log('click download')
-      const downloadSelector = `${dropdownSelector} [title="Download"], ${dropdownSelector} [title="下载"]`
-      await page.waitForSelector(downloadSelector, { timeout: 10000 })
-      await page.click(downloadSelector)
-      await waitForDownload()
+      console.log('click copy link')
+      const copyLinkSelector = `${dropdownSelector} [title="Copy link"], ${dropdownSelector} [title="复制链接"]`
+      await page.waitForSelector(copyLinkSelector, { timeout: 10000 })
+      await page.click(copyLinkSelector)
       await delay(1000)
+
+      // console.log('click download')
+      // const downloadSelector = `${dropdownSelector} [title="Download"], ${dropdownSelector} [title="下载"]`
+      // await page.waitForSelector(downloadSelector, { timeout: 10000 })
+      // await page.click(downloadSelector)
+      // await waitForDownload()
+      // await delay(1000)
 
       console.log('read text')
       links.push(await clipboardy.read())
@@ -81,7 +92,20 @@ const handler: Handler = async ({ page }) => {
 
     console.log(links)
 
-    await delay(1000000)
+    const queue = await crawler.addRequests(
+      links.map(link => ({
+        url: link,
+        label: catLink(link),
+        userData: {
+          type: catLink(link),
+          workdir,
+        },
+      }))
+    )
+
+    await queue.waitForAllRequestsToBeAdded
+
+    // await delay(1000000)
   } catch (error) {
     log.error(`Error: ${error.message}`)
     throw error

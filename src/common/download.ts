@@ -30,11 +30,11 @@ export const getFilenameFromContentDisposition = (contentDisposition: string) =>
   throw new Error('Could not parse filename from Content-Disposition header')
 }
 
-export const createDownloader = async (page: Page) => {
+export const createDownloader = async (page: Page, workdir?: string[]) => {
   const cdp = await page.target().createCDPSession()
   await cdp.send('Page.setDownloadBehavior', {
     behavior: 'allow',
-    downloadPath: DOWNLOAD_PATH,
+    downloadPath: workdir ? path.join(DOWNLOAD_PATH, workdir.join('/')) : DOWNLOAD_PATH,
   })
 
   const emitter = new EventEmitter()
