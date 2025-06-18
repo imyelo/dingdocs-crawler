@@ -1,3 +1,4 @@
+import assert from 'assert'
 import clipboardy from 'clipboardy'
 import type { Source } from 'crawlee'
 import delay from 'delay'
@@ -20,9 +21,30 @@ const handler: Handler = async ({ page, crawler }) => {
     await page.waitForSelector('[data-my-files-id]', { timeout: 10000 })
     await delay(1000)
 
-    const workdir = await page.$$eval('.ant-breadcrumb .breadcrumb-item', elements =>
+    console.log('wait for folder info')
+    await page.setViewport({ width: 800, height: 600 })
+    await page.waitForSelector('#left-wrapper-container + div .group-item', { timeout: 10000 })
+    const folderInfo = await page.$$eval('#left-wrapper-container + div .group-item', elements =>
+      elements.map(el => ({
+        label: el.querySelector('.group-item-label')?.textContent?.trim() || '',
+        value: el.querySelector('.group-item-value')?.textContent?.trim() || '',
+      }))
+    )
+    log.debug(`folderInfo: ${JSON.stringify(folderInfo)}`)
+    const workdirFromFolderInfo =
+      folderInfo
+        .find(info => info.label === 'Path' || info.label === '路径')
+        ?.value?.replace(/(^Team File:)|(^团队文件：)/g, '')
+        ?.trim()
+        ?.split('/') || []
+    log.debug(`workdir from folder info: ${workdirFromFolderInfo.join(' > ')}`)
+
+    const workdirFromHeader = await page.$$eval('.ant-breadcrumb .breadcrumb-item', elements =>
       elements.map(el => el.textContent?.trim() || '')
     )
+    log.debug(`workdir from header: ${workdirFromHeader.join(' > ')}`)
+
+    const workdir = [workdirFromHeader[0], ...workdirFromFolderInfo, workdirFromHeader[workdirFromHeader.length - 1]]
     log.info(`Workdir: ${workdir.join(' > ')}`)
 
     const fileNames = await page.$$eval('[data-my-files-id] [data-testid="editable-text"]', elements =>
@@ -33,6 +55,7 @@ const handler: Handler = async ({ page, crawler }) => {
     log.info(`Found files: ${fileNames.join(', ')}`)
 
     const nextRequests: Source[] = []
+    const ignoredRequests: Source[] = []
 
     for (const fileName of fileNames) {
       console.log('hover', fileName)
@@ -60,11 +83,7 @@ const handler: Handler = async ({ page, crawler }) => {
       const link = await clipboardy.read()
 
       const label = catLink(link)
-      if (label === LINK_TYPE.UNKNOWN) {
-        log.error(`Unknown link type: ${link}`)
-        continue
-      }
-      nextRequests.push({
+      const request: Source = {
         url: link,
         label,
         userData: {
@@ -72,9 +91,19 @@ const handler: Handler = async ({ page, crawler }) => {
           workdir,
           filename: fileName,
         },
-      })
+      }
+      if (label === LINK_TYPE.UNKNOWN) {
+        log.error(`Unknown link type: ${link}`)
+        ignoredRequests.push(request)
+        continue
+      }
+      nextRequests.push(request)
       await delay(1000)
     }
+
+    console.log('ignoredRequests', ignoredRequests)
+    console.log('nextRequests', nextRequests)
+    assert(nextRequests.length + ignoredRequests.length === fileNames.length, 'All requests should be processed')
 
     const queue = await crawler.addRequests(nextRequests)
     await queue.waitForAllRequestsToBeAdded

@@ -1,6 +1,8 @@
 import { LINK_TYPE } from '../core/interfaces.js'
+import { log } from '../core/log.js'
 
 export const catLink = (link: string) => {
+  log.debug(`catLink: ${link}`)
   const url = new URL(link)
   if (url.pathname.startsWith('/i/desktop/folders/')) {
     return LINK_TYPE.FOLDER

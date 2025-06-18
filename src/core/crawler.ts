@@ -2,7 +2,7 @@ import { Log, ProxyConfiguration, PuppeteerCrawler } from 'crawlee'
 import { CrawleePino } from 'crawlee-pino'
 import puppeteer from 'puppeteer-extra'
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
-import { MAX_CONCURRENCY, PROXY_URLS, REQUEST_TIMEOUT_SECONDS, VISIBLE } from './env.js'
+import { MAX_CONCURRENCY, MAX_REQUEST_RETRIES, PROXY_URLS, REQUEST_TIMEOUT_SECONDS, VISIBLE } from './env.js'
 import { log } from './log.js'
 
 puppeteer.use(StealthPlugin())
@@ -34,6 +34,7 @@ export const crawler = new PuppeteerCrawler({
   log: new Log({
     logger: new CrawleePino({ pino: log.child({ event: 'crawlee says' }) }),
   }),
+  maxRequestRetries: MAX_REQUEST_RETRIES,
 })
 
 export type Handler = Parameters<typeof crawler.router.addHandler>[1]
