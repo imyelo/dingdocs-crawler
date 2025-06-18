@@ -22,7 +22,9 @@ const handler: Handler = async ({ page, crawler }) => {
     await delay(1000)
 
     console.log('wait for folder info')
-    await page.setViewport({ width: 800, height: 600 })
+    // large width for folder info
+    // large height for virtual list
+    await page.setViewport({ width: 800, height: 90000 })
     await page.waitForSelector('#left-wrapper-container + div .group-item', { timeout: 10000 })
     const folderInfo = await page.$$eval('#left-wrapper-container + div .group-item', elements =>
       elements.map(el => ({
