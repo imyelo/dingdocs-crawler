@@ -27,9 +27,8 @@ export const loadCookies = async (page: Page) => {
   const cookies = await getter()
   if (cookies) {
     await page.setCookie(...(cookies as Protocol.Network.Cookie[]))
+    await page.reload()
   }
-
-  await page.reload()
 }
 
 export const saveCookies = async (page: Page) => {
