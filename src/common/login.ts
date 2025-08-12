@@ -12,6 +12,7 @@ export const waitForLogin = async (page: Page) => {
 
     if (isLoginPage) {
       log.info('Please login in the browser window...')
+      console.log('请在浏览器窗口中完成登录...')
       await page.waitForFunction(
         () => !(document.title.includes('钉钉统一身份认证') || document.title.includes('DingTalk unified identity')),
         { timeout: 300000 }

@@ -49,63 +49,93 @@ const handler: Handler = async ({ page, crawler }) => {
     const workdir = [workdirFromHeader[0], ...workdirFromFolderInfo, workdirFromHeader[workdirFromHeader.length - 1]]
     log.info(`Workdir: ${workdir.join(' > ')}`)
 
-    const fileNames = await page.$$eval('[data-my-files-id] [data-testid="editable-text"]', elements =>
-      elements.map(el => el.textContent?.trim() || '')
-    )
-
-    log.info(`Found ${fileNames.length} files`)
-    log.info(`Found files: ${fileNames.join(', ')}`)
-
+    const listSelector = '.ReactVirtualized__List'
+    const fileIds: Set<string> = new Set()
     const nextRequests: Source[] = []
     const ignoredRequests: Source[] = []
 
-    for (const fileName of fileNames) {
-      console.log('hover', fileName)
-      const fileSelector = `[data-my-files-id]:has([data-testid="editable-text"][title="${fileName}"])`
-      await page.hover(fileSelector)
+    do {
+      const newFileIds = await page.$$eval('[data-my-files-id]', elements =>
+        elements.map(el =>
+          JSON.stringify([
+            el.querySelector('[data-testid="editable-text"]').textContent?.trim() || '',
+            ['', ...el.querySelector('.wefile-icon-container svg').classList].join('.'),
+          ])
+        )
+      )
 
-      console.log('click more')
-      await delay(1000)
-      const moreSelector = `${fileSelector} .icon-more-container`
-      await page.waitForSelector(moreSelector, { timeout: 10000 })
-      await page.click(moreSelector)
+      log.info(`Found ${newFileIds.length} files`)
+      log.info(`Found files: ${newFileIds.join(', ')}`)
 
-      console.log('wait for dropdown')
-      const dropdownSelector = '.dtd-dropdown:not(.dtd-dropdown-hidden)'
-      await page.waitForSelector(dropdownSelector, { timeout: 10000 })
-      await delay(1000)
+      for (const fileId of newFileIds) {
+        if (fileIds.has(fileId)) {
+          console.log(`File ${fileId} already processed`)
+          continue
+        }
 
-      console.log('click copy link')
-      const copyLinkSelector = `${dropdownSelector} [title="Copy link"], ${dropdownSelector} [title="复制链接"]`
-      await page.waitForSelector(copyLinkSelector, { timeout: 10000 })
-      await page.click(copyLinkSelector)
-      await delay(1000)
+        const [fileName, fileIconSelector] = JSON.parse(fileId)
+        console.log('hover', fileName, fileIconSelector)
+        const fileSelector = `[data-my-files-id]:has([data-testid="editable-text"][title="${fileName}"]):has(.wefile-icon-container svg${fileIconSelector})`
+        await page.hover(fileSelector)
 
-      console.log('read text')
-      const link = await clipboardy.read()
+        console.log('click more')
+        await delay(1000)
+        const moreSelector = `${fileSelector} .icon-more-container`
+        await page.waitForSelector(moreSelector, { timeout: 10000 })
+        await page.click(moreSelector)
 
-      const label = catLink(link)
-      const request: Source = {
-        url: link,
-        label,
-        userData: {
+        console.log('wait for dropdown')
+        const dropdownSelector = '.dtd-dropdown:not(.dtd-dropdown-hidden)'
+        await page.waitForSelector(dropdownSelector, { timeout: 10000 })
+        await delay(1000)
+
+        console.log('click copy link')
+        const copyLinkSelector = `${dropdownSelector} [title="Copy link"], ${dropdownSelector} [title="复制链接"]`
+        await page.waitForSelector(copyLinkSelector, { timeout: 10000 })
+        await page.click(copyLinkSelector)
+        await delay(1000)
+
+        console.log('read text')
+        const link = await clipboardy.read()
+
+        const label = catLink(link)
+        const request: Source = {
+          url: link,
           label,
-          workdir,
-          filename: fileName,
-        },
+          userData: {
+            label,
+            workdir,
+            filename: fileName,
+          },
+        }
+        if (label === LINK_TYPE.UNKNOWN) {
+          log.error(`Unknown link type: ${link}`)
+          ignoredRequests.push(request)
+          continue
+        }
+        nextRequests.push(request)
+        await delay(1000)
       }
-      if (label === LINK_TYPE.UNKNOWN) {
-        log.error(`Unknown link type: ${link}`)
-        ignoredRequests.push(request)
-        continue
-      }
-      nextRequests.push(request)
+      newFileIds.forEach(fileId => fileIds.add(fileId))
+
+      log.info('scrolling down')
+      await page.evaluate(listSelector => {
+        const list = document.querySelector(listSelector)
+        if (!list) return
+        list.scrollTo({ top: list.scrollTop + list.clientHeight, behavior: 'instant' })
+      }, listSelector)
       await delay(1000)
-    }
+      await page.waitForNetworkIdle()
+    } while (
+      await page.$eval(listSelector, list => {
+        return list.scrollHeight - list.scrollTop > list.clientHeight
+      })
+    )
 
     console.log('ignoredRequests', ignoredRequests)
     console.log('nextRequests', nextRequests)
-    assert(nextRequests.length + ignoredRequests.length === fileNames.length, 'All requests should be processed')
+    console.log('fileIds', fileIds, fileIds.size)
+    assert(nextRequests.length + ignoredRequests.length === fileIds.size, 'All requests should be processed')
 
     const queue = await crawler.addRequests(nextRequests)
     await queue.waitForAllRequestsToBeAdded
