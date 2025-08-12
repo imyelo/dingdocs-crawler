@@ -8,10 +8,15 @@ import type { Handler } from '../core/crawler.js'
 import { log } from '../core/log.js'
 
 const handler: Handler = async ({ page, request }) => {
-  await loadCookies(page)
-  await abortUselessRequests(page)
-  await waitForLogin(page)
-  await delay(1000)
+  try {
+    await loadCookies(page)
+    await abortUselessRequests(page)
+    await waitForLogin(page)
+    await delay(1000)
+  } catch (error) {
+    log.error(`Error: ${error.message}`)
+    throw error
+  }
 
   try {
     const { workdir, filename } = request.userData

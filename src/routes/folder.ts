@@ -90,7 +90,7 @@ const handler: Handler = async ({ page, crawler }) => {
         await delay(1000)
 
         console.log('click copy link')
-        const copyLinkSelector = `${dropdownSelector} [title="Copy link"], ${dropdownSelector} [title="复制链接"]`
+        const copyLinkSelector = `${dropdownSelector} [title="Copy link"], ${dropdownSelector} [title="Copy link address"], ${dropdownSelector} [title="复制链接"]`
         await page.waitForSelector(copyLinkSelector, { timeout: 10000 })
         await page.click(copyLinkSelector)
         await delay(1000)
@@ -98,7 +98,7 @@ const handler: Handler = async ({ page, crawler }) => {
         console.log('read text')
         const link = await clipboardy.read()
 
-        const label = catLink(link)
+        const label = catLink(link, [fileName, fileIconSelector])
         const request: Source = {
           url: link,
           label,
