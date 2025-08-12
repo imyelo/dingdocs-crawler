@@ -19,7 +19,7 @@ export const env = envSchema.parse({
   NAME: process.env.APP_NAME,
   CRAWLER_TIMEOUT_SECONDS: +process.env.APP_CRAWLER_TIMEOUT_SECONDS,
   REQUEST_TIMEOUT_SECONDS: +process.env.APP_REQUEST_TIMEOUT_SECONDS,
-  VISIBLE: !!+process.env.APP_VISIBLE,
+  VISIBLE: process.env.APP_VISIBLE === 'true',
   PROXY_URLS: process.env.APP_PROXY_URLS.split(',').filter(Boolean),
   MAX_CONCURRENCY: +process.env.APP_MAX_CONCURRENCY,
   MAX_REQUEST_RETRIES: +process.env.APP_MAX_REQUEST_RETRIES,
