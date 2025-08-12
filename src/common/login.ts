@@ -22,7 +22,7 @@ export const waitForLogin = async (page: Page) => {
 
     await saveCookies(page)
   } catch (error) {
-    log.error('Login timeout or failed:', error)
+    log.error(`Login timeout or failed: ${error}`)
     throw error
   }
 }

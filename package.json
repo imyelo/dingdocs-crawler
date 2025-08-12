@@ -1,31 +1,17 @@
 {
+  "private": true,
   "name": "dingdocs-crawler",
   "version": "0.0.0",
   "description": "",
   "type": "module",
-  "exports": {
-    ".": {
-      "types": "./lib/types/index.d.ts",
-      "default": "./lib/esm/index.js"
-    }
-  },
-  "types": "./lib/types/index.d.js",
-  "files": [
-    "lib"
-  ],
   "scripts": {
-    "dev": "node --loader ts-node/esm ./src/index.ts",
-    "clean": "rimraf ./lib",
-    "prebuild": "npm run clean",
-    "build": "tsc -p ./tsconfig.esm.json",
-    "test": "ava",
-    "prepare": "husky install",
-    "release": "np",
-    "start": "node --loader ts-node/esm ./src/index.ts",
+    "prepare": "husky",
+    "start": "bun ./src/index.ts",
     "log": "tail -f ./output.log | pino-pretty"
   },
   "engines": {
-    "node": ">= 18"
+    "node": ">= 20",
+    "bun": ">= 1.2.20"
   },
   "repository": {
     "url": "imyelo/dingdocs-crawler",
@@ -38,49 +24,34 @@
   },
   "homepage": "https://github.com/imyelo/dingdocs-crawler#readme",
   "dependencies": {
-    "@logtail/pino": "^0.4.0",
+    "@logtail/pino": "^0.5.5",
     "clipboardy": "^4.0.0",
-    "crawlee": "^3.3.0",
-    "crawlee-pino": "^0.1.0",
-    "dayjs": "^1.11.7",
-    "delay": "^5.0.0",
-    "dotenv-flow": "^3.2.0",
-    "got": "^12.6.0",
-    "p-timeout": "^6.1.1",
-    "path-to-regexp": "^6.2.1",
-    "pino": "^8.11.0",
+    "crawlee": "^3.14.1",
+    "crawlee-pino": "^0.2.1",
+    "dayjs": "^1.11.13",
+    "delay": "^6.0.0",
+    "dotenv-flow": "^4.1.0",
+    "got": "^14.4.7",
+    "p-timeout": "^6.1.4",
+    "path-to-regexp": "^8.2.0",
+    "pino": "^9.8.0",
     "playwright": "^1.31.2",
-    "puppeteer": "^19.7.5",
+    "puppeteer": "^24.16.1",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2"
   },
   "devDependencies": {
-    "@yelo/eslint-config": "^0.2.0",
+    "@types/got": "^9.6.12",
+    "@yelo/eslint-config": "^0.3.2",
     "@yelo/prettier-config": "^0.1.0",
     "@yelo/tsconfig": "^0.3.0",
-    "ava": "^5.2.0",
     "eslint": "^8.38.0",
-    "husky": "^8.0.3",
-    "lint-staged": "^13.2.1",
-    "np": "^7.7.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.5",
     "pino-pretty": "^13.0.0",
     "prettier": "^2.8.7",
     "prettier-eslint-cli": "^6.0.1",
-    "rimraf": "^4.4.1",
-    "ts-node": "^10.9.1",
     "typescript": "^5.0.4"
-  },
-  "ava": {
-    "extensions": {
-      "ts": "module"
-    },
-    "nodeArguments": [
-      "--loader=ts-node/esm"
-    ],
-    "files": [
-      "test/**/*",
-      "!test/helpers/**/*"
-    ]
   },
   "prettier": "@yelo/prettier-config",
   "lint-staged": {
