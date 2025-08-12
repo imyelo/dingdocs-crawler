@@ -2,7 +2,7 @@ import { EventEmitter } from 'events'
 import fs from 'fs'
 import path from 'path'
 import { Page } from 'puppeteer'
-import { DOWNLOAD_PATH } from '../core/env.js'
+import { env } from '../core/env.js'
 import { log } from '../core/log.js'
 
 const getFilenameFromContentDisposition = (contentDisposition: string) => {
@@ -44,7 +44,7 @@ export interface DownloadedEvent {
 
 export const createDownloader = async (page: Page, workdir?: string[]) => {
   const cdp = await page.target().createCDPSession()
-  const downloadPath = workdir ? path.join(DOWNLOAD_PATH, workdir.join('/')) : DOWNLOAD_PATH
+  const downloadPath = workdir ? path.join(env.DOWNLOAD_PATH, workdir.join('/')) : env.DOWNLOAD_PATH
   await cdp.send('Page.setDownloadBehavior', {
     behavior: 'allow',
     downloadPath,

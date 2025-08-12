@@ -2,13 +2,13 @@ import { Configuration, Log, ProxyConfiguration, PuppeteerCrawler } from 'crawle
 import { CrawleePino } from 'crawlee-pino'
 import puppeteer from 'puppeteer-extra'
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
-import { MAX_CONCURRENCY, MAX_REQUEST_RETRIES, PROXY_URLS, REQUEST_TIMEOUT_SECONDS, VISIBLE } from './env.js'
+import { env } from './env.js'
 import { log } from './log.js'
 
 puppeteer.use(StealthPlugin())
 
 export const crawler = new PuppeteerCrawler({
-  headless: !VISIBLE,
+  headless: !env.VISIBLE,
   launchContext: {
     launcher: puppeteer,
     launchOptions: {
@@ -21,13 +21,13 @@ export const crawler = new PuppeteerCrawler({
       ],
     } as any,
   },
-  proxyConfiguration: PROXY_URLS.length
+  proxyConfiguration: env.PROXY_URLS.length
     ? new ProxyConfiguration({
-        proxyUrls: PROXY_URLS,
+        proxyUrls: env.PROXY_URLS,
       })
     : void 0,
-  maxConcurrency: MAX_CONCURRENCY,
-  requestHandlerTimeoutSecs: REQUEST_TIMEOUT_SECONDS,
+  maxConcurrency: env.MAX_CONCURRENCY,
+  requestHandlerTimeoutSecs: env.REQUEST_TIMEOUT_SECONDS,
   failedRequestHandler: (context, error) => {
     log.error({ event: 'request failed', error, url: context.request.url })
   },
@@ -37,7 +37,7 @@ export const crawler = new PuppeteerCrawler({
   log: new Log({
     logger: new CrawleePino({ pino: log.child({ event: 'crawlee says' }) }),
   }),
-  maxRequestRetries: MAX_REQUEST_RETRIES,
+  maxRequestRetries: env.MAX_REQUEST_RETRIES,
 })
 
 Configuration.getEventManager().on('aborting', () => {
