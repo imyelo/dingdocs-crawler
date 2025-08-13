@@ -34,7 +34,7 @@
     "path-to-regexp": "^8.2.0",
     "pino": "^9.8.0",
     "playwright": "^1.31.2",
-    "puppeteer": "^24.16.1",
+    "puppeteer": "~24.16.1",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
     "zod": "^4.0.17"

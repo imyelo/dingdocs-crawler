@@ -1,13 +1,13 @@
 import delay from 'delay'
-import { abortUselessRequests } from '../common/abort-useless-requests.js'
-import { loadCookies } from '../common/cookies-store.js'
-import { createDownloader } from '../common/download.js'
-import { waitForLogin } from '../common/login.js'
-import { timeout } from '../common/timeout.js'
-import type { Handler } from '../core/crawler.js'
-import { log } from '../core/log.js'
+import { abortUselessRequests } from '../../common/abort-useless-requests.js'
+import { loadCookies } from '../../common/cookies-store.js'
+import { createDownloader } from '../../common/download.js'
+import { waitForLogin } from '../../common/login.js'
+import { timeout } from '../../common/timeout.js'
+import type { PuppeteerCrawlerHandler } from '../../core/crawler.js'
+import { log } from '../../core/log.js'
 
-const handler: Handler = async ({ page, request }) => {
+const handler: PuppeteerCrawlerHandler = async ({ page, request }) => {
   try {
     await loadCookies(page)
     await abortUselessRequests(page)
@@ -29,10 +29,11 @@ const handler: Handler = async ({ page, request }) => {
     await page.waitForSelector(viewSelector, { timeout: 10000 })
     await delay(1000)
 
-    console.log('close global guide')
-    const globalGuideButtonSelector = '.global-guide button'
+    console.log('detect global guide')
+    const globalGuideButtonSelector = '#primary-doc-upgrade-guide > button'
     const globalGuideButtons = await page.$$(globalGuideButtonSelector)
     if (globalGuideButtons.length > 0) {
+      console.log('close global guide')
       await globalGuideButtons[0]?.click()
     }
 
@@ -62,7 +63,7 @@ const handler: Handler = async ({ page, request }) => {
     await page.click(downloadSelector)
 
     console.log('submit download from modal')
-    const downloadModalButtonsSelector = '.wdn-modal-content button:has(._export20)'
+    const downloadModalButtonsSelector = 'button:has(._export16)'
     await page.waitForSelector(downloadModalButtonsSelector, { timeout: 10000 })
     await page.click(downloadModalButtonsSelector)
     await Promise.any([waitForFileReady(`${filename}.zip`), waitForFileReady(`${filename}.xlsx`), timeout(10000)])
@@ -71,6 +72,7 @@ const handler: Handler = async ({ page, request }) => {
     console.log(`Downloaded to "${workdir.join('/')}/${filename}.(xlsx|zip)"`)
   } catch (error) {
     log.error(`Error: ${error.message}`)
+    console.error(`Error: ${error.message}`)
     throw error
   }
 }

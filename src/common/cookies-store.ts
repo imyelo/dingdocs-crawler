@@ -1,5 +1,6 @@
 import { KeyValueStore } from 'crawlee'
 import type { Cookie, Page } from 'puppeteer'
+import { CookieJar } from 'tough-cookie'
 import { log } from '../core/log.js'
 
 const STORE_NAME = 'dingdocs'
@@ -12,7 +13,7 @@ const setter = (cookies: Cookie[]) => {
   store.setValue('cookies', cookies)
 }
 
-const getter = async () => {
+export const getter = async () => {
   if (memory.has('cookies')) {
     return memory.get('cookies')
   }
@@ -32,11 +33,20 @@ export const loadCookies = async (page: Page) => {
       log.error(`Error loading cookies: ${error}`)
       await setter([])
     }
-    await page.reload()
+    await page.reload().catch(error => {
+      console.error(`Error reloading page: ${error}`)
+    })
   }
 }
 
 export const saveCookies = async (page: Page) => {
   const cookies = await page.browser().cookies()
   await setter(cookies)
+}
+
+export const loadCookieJar = async (url: string) => {
+  const cookieJar = new CookieJar()
+  const cookies = await getter()
+  cookies.forEach(cookie => cookieJar.setCookie(`${cookie.name}=${cookie.value}`, url))
+  return cookieJar
 }

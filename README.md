@@ -11,7 +11,7 @@ English | [中文 README](./README.zh-CN.md)
   - Documents
   - Spreadsheets
   - Mind Maps
-  - ~~AI Tables~~
+  - AI Tables
   - Uploaded files (PDF, images, etc.)
   - Nested folders
 - 🛡️ **Stable & Reliable**: Stealth mode, retry mechanism, and comprehensive error handling

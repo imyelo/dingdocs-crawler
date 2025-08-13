@@ -7,7 +7,7 @@ import { log } from './log.js'
 
 puppeteer.use(StealthPlugin())
 
-export const crawler = new PuppeteerCrawler({
+export const puppeteerCrawler = new PuppeteerCrawler({
   headless: !env.VISIBLE,
   launchContext: {
     launcher: puppeteer,
@@ -18,6 +18,7 @@ export const crawler = new PuppeteerCrawler({
         '--disable-dev-shm-usage',
         '--disable-gpu',
         '--single-process',
+        '--disable-features=FedCm',
       ],
     } as any,
   },
@@ -48,4 +49,4 @@ Configuration.getEventManager().on('exit', () => {
   log.info({ event: 'crawler exited' })
 })
 
-export type Handler = Parameters<typeof crawler.router.addHandler>[1]
+export type PuppeteerCrawlerHandler = Parameters<typeof puppeteerCrawler.router.addHandler>[1]

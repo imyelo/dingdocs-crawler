@@ -1,13 +1,13 @@
 import delay from 'delay'
-import { abortUselessRequests } from '../common/abort-useless-requests.js'
-import { loadCookies } from '../common/cookies-store.js'
-import { createDownloader } from '../common/download.js'
-import { waitForLogin } from '../common/login.js'
-import { timeout } from '../common/timeout.js'
-import type { Handler } from '../core/crawler.js'
-import { log } from '../core/log.js'
+import { abortUselessRequests } from '../../common/abort-useless-requests.js'
+import { loadCookies } from '../../common/cookies-store.js'
+import { createDownloader } from '../../common/download.js'
+import { waitForLogin } from '../../common/login.js'
+import { timeout } from '../../common/timeout.js'
+import type { PuppeteerCrawlerHandler } from '../../core/crawler.js'
+import { log } from '../../core/log.js'
 
-const handler: Handler = async ({ page, request }) => {
+const handler: PuppeteerCrawlerHandler = async ({ page, request }) => {
   await loadCookies(page)
   await abortUselessRequests(page)
   await waitForLogin(page)

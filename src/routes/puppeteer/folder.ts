@@ -2,15 +2,15 @@ import assert from 'assert'
 import clipboardy from 'clipboardy'
 import type { Source } from 'crawlee'
 import delay from 'delay'
-import { abortUselessRequests } from '../common/abort-useless-requests.js'
-import { catLink } from '../common/cat-link.js'
-import { loadCookies } from '../common/cookies-store.js'
-import { waitForLogin } from '../common/login.js'
-import type { Handler } from '../core/crawler.js'
-import { LINK_TYPE } from '../core/interfaces.js'
-import { log } from '../core/log.js'
+import { abortUselessRequests } from '../../common/abort-useless-requests.js'
+import { catLink } from '../../common/cat-link.js'
+import { loadCookies } from '../../common/cookies-store.js'
+import { waitForLogin } from '../../common/login.js'
+import type { PuppeteerCrawlerHandler } from '../../core/crawler.js'
+import { LINK_TYPE } from '../../core/interfaces.js'
+import { log } from '../../core/log.js'
 
-const handler: Handler = async ({ page, crawler }) => {
+const handler: PuppeteerCrawlerHandler = async ({ page, crawler }) => {
   await loadCookies(page)
   await abortUselessRequests(page)
   await waitForLogin(page)
@@ -98,9 +98,9 @@ const handler: Handler = async ({ page, crawler }) => {
         console.log('read text')
         const link = await clipboardy.read()
 
-        const label = catLink(link, [fileName, fileIconSelector])
+        const [nextLink, label] = await catLink(link)
         const request: Source = {
-          url: link,
+          url: nextLink,
           label,
           userData: {
             label,
@@ -121,7 +121,12 @@ const handler: Handler = async ({ page, crawler }) => {
       log.info('scrolling down')
       await page.evaluate(listSelector => {
         const list = document.querySelector(listSelector)
-        if (!list) return
+        if (!list) {
+          return
+        }
+        if (list.scrollHeight - list.scrollTop <= list.clientHeight) {
+          return
+        }
         list.scrollTo({ top: list.scrollTop + list.clientHeight, behavior: 'instant' })
       }, listSelector)
       await delay(1000)

@@ -1,12 +1,13 @@
 import delay from 'delay'
-import { abortUselessRequests } from '../common/abort-useless-requests.js'
-import { loadCookies } from '../common/cookies-store.js'
-import { createDownloader } from '../common/download.js'
-import { waitForLogin } from '../common/login.js'
-import type { Handler } from '../core/crawler.js'
-import { log } from '../core/log.js'
+import { abortUselessRequests } from '../../common/abort-useless-requests.js'
+import { loadCookies } from '../../common/cookies-store.js'
+import { createDownloader } from '../../common/download.js'
+import { waitForLogin } from '../../common/login.js'
+import { timeout } from '../../common/timeout.js'
+import type { PuppeteerCrawlerHandler } from '../../core/crawler.js'
+import { log } from '../../core/log.js'
 
-const handler: Handler = async ({ page, request }) => {
+const handler: PuppeteerCrawlerHandler = async ({ page, request }) => {
   await loadCookies(page)
   await abortUselessRequests(page)
   await waitForLogin(page)
@@ -14,11 +15,7 @@ const handler: Handler = async ({ page, request }) => {
 
   try {
     const { workdir, filename } = request.userData
-    const { waitForDownload, renameFile } = await createDownloader(page, workdir)
-
-    const viewSelector = '[role="view"]'
-    await page.waitForSelector(viewSelector, { timeout: 10000 })
-    await delay(1000)
+    const { waitForFileReady } = await createDownloader(page, workdir)
 
     const openDownloadMenu = async () => {
       console.log('click more')
@@ -32,7 +29,7 @@ const handler: Handler = async ({ page, request }) => {
       await delay(1000)
 
       console.log('hover download menu')
-      const downloadMenuSelector = `${dropdownSelector} [data-path="download"]`
+      const downloadMenuSelector = '[data-testid="ContextMenuWrap_DOWNLOAD_AS"]'
       await page.hover(downloadMenuSelector)
       await delay(1000)
     }
@@ -43,14 +40,13 @@ const handler: Handler = async ({ page, request }) => {
       console.log('click download')
       await page.waitForSelector(downloadSelector, { timeout: 10000 })
       await page.click(downloadSelector)
-      const { filename: downloadedFilename } = await waitForDownload()
-      await renameFile(downloadedFilename, `${filename}.${extension}`)
+      await Promise.any([waitForFileReady(`${filename}.${extension}`), timeout(10000)])
       await delay(1000)
 
       console.log(`Downloaded to "${workdir.join('/')}/${filename}.${extension}"`)
     }
 
-    await downloadFromLocal('[data-path="download::DOWNLOAD_AS_PDF"]', 'pdf')
+    await downloadFromLocal('[data-testid="ContextMenuWrap__DOWNLOAD_AS_EXCEL"]', 'xlsx')
   } catch (error) {
     log.error(`Error: ${error.message}`)
     throw error

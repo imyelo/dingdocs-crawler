@@ -7,9 +7,11 @@ export const abortUselessRequests = async (page: Page) => {
     if (
       url === 'https://alidocs.dingtalk.com/favicon.ico' ||
       url.startsWith('https://s-gm.mmstat.com/') ||
+      url.startsWith('https://gm.mmstat.com/') ||
       url.startsWith('https://acjs.aliyun.com/') ||
       url.startsWith('https://fourier.taobao.com/rp') ||
-      /https:\/\/lippi-.*\.cn-.*\.log\.aliyuncs\.com\//.test(url)
+      /https:\/\/lippi-.*\.cn-.*\.log\.aliyuncs\.com\//.test(url) ||
+      /https:\/\/dsuite-.*\.cn-.*\.log\.aliyuncs\.com\//.test(url)
     ) {
       interceptedRequest.abort()
       return
